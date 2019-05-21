@@ -1,0 +1,23 @@
+{
+  "name": "ordxml",
+  "version": "1.0.0",
+  "description": "An XML parser that maintains consistent order and is very forgiving.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Solifugus/ordxml.git"
+  },
+  "keywords": [
+    "xml",
+    "parser"
+  ],
+  "author": "Matthew C. Tedder",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Solifugus/ordxml/issues"
+  },
+  "homepage": "https://github.com/Solifugus/ordxml#readme"
+}

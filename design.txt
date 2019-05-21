@@ -1,0 +1,43 @@
+
+
+Idea:
+
+
+	<name a="1","2", or "3"/>
+	
+	The assignment is given a choice.
+
+
+	<name a="1","2", and "3"/>
+
+	The assignment is given multiple instances.
+
+
+<Application name="myapp" version="0.1.0">
+
+	<!-- On any change to a specified variable, execute the enclosed code. -->
+	<Trigger On="var1 var2">
+		let var1 = off;
+	</Trigger>
+
+	<Row spacing="between|around|left|right">
+		<title>xx</title>
+		<Toggle field="var1" default="off"/>
+		<input pattern="regex"/>
+		<Selection field="var1">
+			<Literal>xyz</Literal>
+			<Pattern>regex</Pattern>
+		</Selection>
+	</Row>
+
+	<Col spacing="between|around|top|bottom">
+	</Col>
+
+	<Box>
+	</Box>
+
+</Application>
+
+In Any Tag:
+	id      = programmatic reference 
+	caption = hover or tool tip text
