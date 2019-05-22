@@ -51,17 +51,15 @@ class OrdXml {
 	}
 
 	parse( xml, tag = { name:'', attrib:{}, elems:[] } ) {
-		xml = ( typeof xml === 'string' ) ? { raw:xml, pos:0, upto:'' } : xml;
+		xml = ( typeof xml === 'string' ) ? { raw:xml, pos:0 } : xml;
 		
-		let heirarchy = [tag];  // current path to place in heirarchy of tags 
-	
 		while( xml.pos < xml.raw.length ) {
-			
 			// Find Next "<" and ">" 
 			let nextLeft = xml.raw.indexOf( '<', xml.pos);
 			let nextRight = xml.raw.indexOf( '>', nextLeft+1 );
 			if( nextRight === -1 ) {  // If no ">", error out..
 				console.error( 'Missing closing ">" after ' + placeInCode( xml.raw, xml.pos ) );
+				xml.pos = xml.raw.length;
 				return undefined;
 			}
 
@@ -71,42 +69,46 @@ class OrdXml {
 			// If no "<" then store all remaining text and return
 			if( nextLeft === -1 ) {
 				if( xml.pos < xml.length-1 ) tag.elems.push( xml.raw.substr( xml.pos ) );
+				xml.pos = xml.raw.length;
 				return tag;
 			}
 
 			// Get Tag Name (including any preceeding '/')
-			let name = xml.raw.substr(nextLeft+1).match(/^[^\s<>]*/)[0];  // Ultra-Forgiving Tag Identification
+			let name = xml.raw.substr(nextLeft+1).match(/^[^\s<>]*/)[0].trim();  // Ultra-Forgiving Tag Identification
 			let attribsBegin = nextLeft + name.length;
 			let attribsEnd   = xml.raw.firstFound( ['/','>'], attribsBegin ) - 1;
 
+			let closingSuper = false;
+			let newTag       = tag;  // default, if it is merely closing the super (so we can collect attribs added to closing of super)
+			if( name[0] === '/' && name.substr(1).toLowerCase() === tag.name ) { closingSuper = true; }
+			else { newTag = { name:name, attrib:{}, elems:[] }; }
+
 			// Grab Attributes
-			//let attribs = xml.raw.substring( attribsBegin, attribsEnd ).match(/[A-Za-z0-0_\-]+\s*=\s*[^\s]*/gm);
 			let attribs = xml.raw.substring( attribsBegin, attribsEnd ).match(/[^\s]+\s*=\s*[^\s]*/gm);
 			if( attribs !== null ) {
 				for( let i = 0; i < attribs.length; i += 1 ) {
 					let halves = attribs[i].split('=');
-					tag.attrib[halves[0].trim()] = halves[1].trim();  // TODO: (1) If already, make array; (2) make case-insensitive (optionally)
+					newTag.attrib[halves[0].trim()] = halves[1].trim();  // TODO: (1) If already, make array; (2) make case-insensitive (optionally)
 				}
 			}
 			
-			// If Closing Tag
-			if( name[0] !== '/' ) tag.name = name;
-			
-			// Is Start of Self-Closing Tag?
-			let selfClosing = false;
-			if( xml.raw[nextRight-1] === '/' ) selfClosing = true;  // TODO: allow whitespace between / and >			
-
-			// Entered New Tag 
+			// Got Tag so Set Pos Past it..
 			xml.pos = nextRight + 1;
-
-			// Is tag self-ending?
+			
+			// If end of recurse into tag, return (since any attribs added to closing tag are collected now)
+			if( closingSuper ) {
+				console.log('closing at: ' + xml.pos);
+				return tag;  // newTag is old tag (just closing it)
+			}
+			
+			// Is Self-Closing Tag?
 			if( xml.raw[nextRight-1] === '/' ) {
-				return tag;
+				tag.elems.push( newTag );
 			}
 			else {
-					tag.elems.push( this.parse( xml, { name:name, attrib:{}, elems:[] } ) );
+					tag.elems.push( this.parse( xml, newTag ) );
 			}
-
+			
 		} // end of while( pos < xml.length )
 
 	}  // end of parse() method
@@ -116,7 +118,7 @@ class OrdXml {
 ordxml = new OrdXml();
 xml = 'before<outer one="1" two="2">inside</outer>after';
 console.log( 'XML: ' + JSON.stringify(xml) );
-console.log( JSON.stringify( ordxml.parse(xml), null, '  ') );
+console.log( 'PARSED: ' + JSON.stringify( ordxml.parse(xml), null, '  ') );
 
 
 
