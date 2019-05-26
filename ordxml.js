@@ -100,15 +100,31 @@ class OrdXml {
 			if( name[0] === '/' && name.substr(1).toLowerCase() === tag.name ) { closingSuper = true; }
 			else { newTag = { name:name, attrib:{}, elems:[] }; }
 
-			// Grab Attributes
+			// Grab Assigned Attributes
 			console.log('ATTRIBS: [' + xml.raw.substring( attribsBegin, attribsEnd ) + ']');
 			let attribs = xml.raw.substring( attribsBegin, attribsEnd ).match(/[^\s]+\s*=\s*[^\s]*/gm);
 			if( attribs !== null ) {
 				for( let i = 0; i < attribs.length; i += 1 ) {
 					let halves = attribs[i].split('=');
-					newTag.attrib[halves[0].trim()] = halves[1].trim();  // TODO: (1) If already, make array; (2) make case-insensitive (optionally)
+					let name;
+					let value = halves[1].trim();
+					if( value.length > 1 && value[0] === '"' && value[value.length-1] === '"' ) { value = value.substring(1,value.length-1); }
+					else { if( !isNaN( value ) ) value = Number( value ); }
+					if( this.setup.caseless ) { name = halves[0].trim().toLowerCase(); }
+					else { name = halves[0].trim(); }
+					//if( newTag.attrib[attribName] === undefined ) { newTag.attrib[attribName] = halves[1].trim(); }
+					switch( typeof newTag.attrib[name] ) {
+						case 'undefined': newTag.attrib[name] = value; break;
+						case 'string':
+						case 'number': newTag.attrib[name] = [ newTag.attrib[name], value ]; break;
+						case 'object': newTag.attrib[name].push(value); break;
+						default: console.error('ERROR: Unexpected attribute value type');
+					}
 				}
 			}
+
+
+			// Grab Boolean Attributes
 			
 			// Got Tag so Set Pos Past it..
 			xml.pos = nextRight + 1;
