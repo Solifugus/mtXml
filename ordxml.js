@@ -102,17 +102,17 @@ class OrdXml {
 
 			// Grab Assigned Attributes
 			console.log('ATTRIBS: [' + xml.raw.substring( attribsBegin, attribsEnd ) + ']');
-			let attribs = xml.raw.substring( attribsBegin, attribsEnd ).match(/[^\s]+\s*=\s*[^\s]*/gm);
+			//let attribs = xml.raw.substring( attribsBegin, attribsEnd ).match(/[^\s]+\s*=\s*[^\s]*/gm);
+			let attribs = xml.raw.substring( attribsBegin, attribsEnd ).match(/[^\s=]+\s*(?:=(?:"[^"]*"|[^=\S]*\S+))?/gm);
 			if( attribs !== null ) {
 				for( let i = 0; i < attribs.length; i += 1 ) {
 					let halves = attribs[i].split('=');
 					let name;
-					let value = halves[1].trim();
+					let value = ( halves[1] === undefined ) ? true : halves[1].trim();
 					if( value.length > 1 && value[0] === '"' && value[value.length-1] === '"' ) { value = value.substring(1,value.length-1); }
 					else { if( !isNaN( value ) ) value = Number( value ); }
 					if( this.setup.caseless ) { name = halves[0].trim().toLowerCase(); }
 					else { name = halves[0].trim(); }
-					//if( newTag.attrib[attribName] === undefined ) { newTag.attrib[attribName] = halves[1].trim(); }
 					switch( typeof newTag.attrib[name] ) {
 						case 'undefined': newTag.attrib[name] = value; break;
 						case 'string':
@@ -123,9 +123,6 @@ class OrdXml {
 				}
 			}
 
-
-			// Grab Boolean Attributes
-			
 			// Got Tag so Set Pos Past it..
 			xml.pos = nextRight + 1;
 			
