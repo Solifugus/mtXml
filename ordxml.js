@@ -141,6 +141,7 @@ class OrdXml {
 
 	}  // end of parse() method
 
+
 } // end of Ordxml class
 
 exports.OrdXml = OrdXml;
