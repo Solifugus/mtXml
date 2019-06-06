@@ -52,12 +52,14 @@ class OrdXml {
 		setup.caseless  = ( setup.caseless  !== undefined ) ? setup.caseless : true;   // tags interpreted as caseless (all made same case)
 		setup.forgiving = ( setup.forgiving !== undefined ) ? setup.forgiving : true;  // let anything go, if reasonably possible
 		setup.flattags  = ( setup.flattags  !== undefined ) ? setup.flattags : false;  // true = no hierarchy; false = hierarchy; array = hierachy except specified tag names
+		setup.comments  = ( setup.comments  !== undefined ) ? setup.comments : false;  // false = discard; true = keep as "comment" tag; else tag name for comment 
+		if( setup.comments === true ) setup.comments = 'Comment';
 		this.setup = setup;
 
 		//console.log( 'SETUP: ', JSON.stringify( setup, null, '  ' ) );
 	}
 
-	parse( xml, tag = { name:'', attrib:{}, elems:[] } ) {
+	parse( xml = '', tag = { name:'', attrib:{}, elems:[] } ) {
 		if( Buffer.isBuffer(xml) ) xml = xml.toString();
 		xml = ( typeof xml === 'string' ) ? { raw:xml, pos:0 } : xml;
 		
@@ -82,7 +84,6 @@ class OrdXml {
 			// If no "<" then store all remaining text and return
 			if( nextLeft === -1 ) {
 				if( xml.pos < xml.length-1 ) {
-					//tag.elems.push( this.trim(xml.raw.substr( xml.pos )) );
 					if( this.setup.trim ) { text = xml.raw.substr( xml.pos ).trim(); }
 					else { text = xml.raw.substr( xml.pos ); }
 					if( text.length > 0 ) tag.elems.push( text ); 
@@ -91,8 +92,17 @@ class OrdXml {
 				return tag;
 			}
 
+			// If <!-- to --> then skip over.. It's a comment.
+			if( xml.raw.substr(nextLeft+1,3) === '!--' && xml.raw.substr(nextRight-2,2) === '--' ) {
+				if( this.setup.comments !== false ) {
+					tag.elems.push({ name:this.setup.comments, attribs:{}, elems:[xml.raw.substring(nextLeft+4,nextRight-2)] });
+				}
+				xml.pos = nextRight+1;
+				continue;
+			}
+
 			// Get Tag Name (including any preceeding '/')
-			let name = xml.raw.substr(nextLeft+1).match(/^[^\s<>]*/)[0].trim();  // Ultra-Forgiving Tag Identification
+			let name = xml.raw.substr(nextLeft+1).match(/^[^\s<>]*/)[0].trim().toLowerCase();  // Ultra-Forgiving Tag Identification
 			let attribsBegin = nextLeft + name.length + 1;
 			let attribsEnd   = xml.raw.firstFound( ['/','>'], attribsBegin );
 
