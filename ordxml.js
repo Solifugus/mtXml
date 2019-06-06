@@ -54,10 +54,11 @@ class OrdXml {
 		setup.flattags  = ( setup.flattags  !== undefined ) ? setup.flattags : false;  // true = no hierarchy; false = hierarchy; array = hierachy except specified tag names
 		this.setup = setup;
 
-		console.log( 'SETUP: ', JSON.stringify( setup, null, '  ' ) );
+		//console.log( 'SETUP: ', JSON.stringify( setup, null, '  ' ) );
 	}
 
 	parse( xml, tag = { name:'', attrib:{}, elems:[] } ) {
+		if( Buffer.isBuffer(xml) ) xml = xml.toString();
 		xml = ( typeof xml === 'string' ) ? { raw:xml, pos:0 } : xml;
 		
 		while( xml.pos < xml.raw.length ) {
@@ -101,8 +102,6 @@ class OrdXml {
 			else { newTag = { name:name, attrib:{}, elems:[] }; }
 
 			// Grab Assigned Attributes
-			console.log('ATTRIBS: [' + xml.raw.substring( attribsBegin, attribsEnd ) + ']');
-			//let attribs = xml.raw.substring( attribsBegin, attribsEnd ).match(/[^\s]+\s*=\s*[^\s]*/gm);
 			let attribs = xml.raw.substring( attribsBegin, attribsEnd ).match(/[^\s=]+\s*(?:=(?:"[^"]*"|[^=\S]*\S+))?/gm);
 			if( attribs !== null ) {
 				for( let i = 0; i < attribs.length; i += 1 ) {

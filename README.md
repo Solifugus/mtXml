@@ -31,6 +31,7 @@ console.log( JSON.stringify( parsed, null, '  ' ) );
 ## Forgiveness 
 
 * Tag and attribute names may comprise of any visible character (not including whitespace).
+* attribute names given without "=" sign will interpret as assigned to boolean true.
 * Attributes may be assigned either in the openning or closing tag.
 * An out of place closing tag will register but not break.
 * Unclosed tags will not break.
@@ -38,10 +39,10 @@ console.log( JSON.stringify( parsed, null, '  ' ) );
 ## Roap Map
 
 * Config option for strict XML
+* Add CDATA support..
 * Config option for making ordxml a drop-in replacement for "fast-xml-parser"
 * config option for making ordxml a drop-in replacement for "xml2js"
 * Config option to parse elements in either: hierarchy (default), serial array, or hierarchy with specific tags excepted
-* Assign any attributes with no assignment ("=") to simply boolean true.
 
 ## Bugs
 
