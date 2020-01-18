@@ -1,5 +1,5 @@
 
-
+// Are any among "seeking" array the next string, at pos?
 String.prototype.hasNext = function ( seeking, pos = 0 ) {
 	let has = false;
 	for( let i = 0; i < seeking.length; i += 1 ) {
@@ -11,6 +11,7 @@ String.prototype.hasNext = function ( seeking, pos = 0 ) {
 	return has;
 }
 
+// Which string among "seeking" array is found at pos?
 String.prototype.getNext = function ( seeking, pos = 0 ) {
 	let found = undefined;
 	for( let i = 0; i < seeking.length; i += 1 ) {
@@ -48,11 +49,13 @@ class OrdXml {
 	constructor( setup = {} ) {
 		// TODO: add params
 		//    forgiving: true = let anything go unless critical
-		setup.trim      = ( setup.trim      !== undefined ) ? setup.trim : true;       // remove heading/trailing whitespace from text within tags
-		setup.caseless  = ( setup.caseless  !== undefined ) ? setup.caseless : true;   // tags interpreted as caseless (all made same case)
-		setup.forgiving = ( setup.forgiving !== undefined ) ? setup.forgiving : true;  // let anything go, if reasonably possible
-		setup.flattags  = ( setup.flattags  !== undefined ) ? setup.flattags : false;  // true = no hierarchy; false = hierarchy; array = hierachy except specified tag names
-		setup.comments  = ( setup.comments  !== undefined ) ? setup.comments : false;  // false = discard; true = keep as "comment" tag; else tag name for comment 
+		setup.trim         = ( setup.trim        !== undefined ) ? setup.trim : true;          // remove heading/trailing whitespace from text within tags
+		setup.caseless     = ( setup.caseless    !== undefined ) ? setup.caseless : true;      // tags interpreted as caseless (all made same case)
+		setup.forgiving    = ( setup.forgiving   !== undefined ) ? setup.forgiving : true;     // let anything go, if reasonably possible
+		setup.flattags     = ( setup.flattags    !== undefined ) ? setup.flattags : false;     // true = no hierarchy; false = hierarchy; array = hierachy except specified tag names
+		setup.comments     = ( setup.comments    !== undefined ) ? setup.comments : false;     // false = discard; true = keep as "comment" tag; else tag name for comment 
+		setup.enclosures   = ( setup.enclosures  !== undefined ) ? setup.enclosures : [];      // e.g. { opener:'{', closer:'}' }
+		setup.definitions  = ( setup.definitions !== undefined ) ? setup.definitions : false;  // false = don't compile; true = do compile tag 
 		if( setup.comments === true ) setup.comments = 'Comment';
 		this.setup = setup;
 
@@ -102,14 +105,29 @@ class OrdXml {
 			}
 
 			// Get Tag Name (including any preceeding '/')
-			let name = xml.raw.substr(nextLeft+1).match(/^[^\s<>]*/)[0].trim().toLowerCase();  // Ultra-Forgiving Tag Identification
+			//let name = xml.raw.substr(nextLeft+1).match(/^[^\s<>]*/)[0].trim().toLowerCase();  // Ultra-Forgiving Tag Identification
+			let name = xml.raw.substr(nextLeft+1).match(/^[A-Za-z\/][A-Za-z0-9]*/);  
+			if( name === null ) { name = '' } else { name = name[0].trim().toLowerCase(); }
 			let attribsBegin = nextLeft + name.length + 1;
 			let attribsEnd   = xml.raw.firstFound( ['/','>'], attribsBegin );
+
+			// Is Tag Definition?
+			let tagDef = undefined;
+			let tagDefBegin = xml.raw.substr(attribsBegin).indexOf('{') + attribsBegin;
+			if( tagDefBegin >= attribsBegin && xml.raw.substring(attribsBegin,tagDefBegin).trim() === '' ) {
+				let tagDefEnd = xml.raw.firstFound( ['}', '/','>'], attribsBegin );
+				tagDef = xml.raw.slice(tagDefBegin+1,tagDefEnd)
+				attribsBegin = tagDefEnd+1;
+			}
 
 			let closingSuper = false;
 			let newTag       = tag;  // default, if it is merely closing the super (so we can collect attribs added to closing of super)
 			if( name[0] === '/' && name.substr(1).toLowerCase() === tag.name ) { closingSuper = true; }
 			else { newTag = { name:name, attrib:{}, elems:[] }; }
+			if( tagDef !== -1 ) {
+				if( this.setup.definitions ) { newTag.def = new Function("tag",tagDef); }
+				else { newTag.def = tagDef; }
+			}
 
 			// Grab Assigned Attributes
 			let attribs = xml.raw.substring( attribsBegin, attribsEnd ).match(/[^\s=]+\s*(?:=(?:"[^"]*"|[^=\S]*\S+))?/gm);
@@ -147,6 +165,7 @@ class OrdXml {
 			}
 			
 		} // end of while( pos < xml.length )
+		return tag;
 
 	}  // end of parse() method
 

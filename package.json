@@ -1,7 +1,7 @@
 {
   "name": "ordxml",
-  "version": "0.1.4",
-  "description": "An XML parser that maintains consistent order, is very flexible and very forgiving.",
+  "version": "0.2.4",
+  "description": "An XML parser that maintains consistent order (tags, text, etc), is very flexible, very forgiving -- and also provides ability to define what tag types do, using javascript code.",
   "main": "ordxml.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
