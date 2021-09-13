@@ -1,0 +1,9 @@
+<!-- Simple XML Example, everything is parsed and retained in order -->
+<person age="27" name="John Doe">
+	First line of text.
+	<!-- Where no assignment, attributes are assigned the number 1 -->
+	<attributes smart clever smelly/>
+	<!-- Where multiple of same attibute, an array is assigned -->
+	<food fruit="apple" fruit="pair" fruit="orange" fruit="banana"/>
+	last line of text.
+</person>
