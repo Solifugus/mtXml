@@ -24,6 +24,7 @@ String.prototype.getNext = function ( seeking, pos = 0 ) {
 }
 
 // First first position in string not of seeking string character (if string else string if array)
+/*
 String.prototype.firstFound = function ( seeking, pos = 0 ) {
 	while( pos < this.length ) {
 		if( this.hasNext( seeking, pos ) ) break;
@@ -32,6 +33,30 @@ String.prototype.firstFound = function ( seeking, pos = 0 ) {
 	if( pos >= this.length ) pos = -1;
 	return pos;
 };
+*/
+String.prototype.firstFound = function ( seeking, pos = 0 ) {
+	        let found = []
+	        let n     = 0;
+	        let p     = pos -1;
+	        do {
+			                p += 1;
+			                if( this[p] === ' ' || this[p] === '\t' || this[p] === '\n') {
+						                        continue;
+						                }
+			                if( this[p] === seeking[n] ) {
+						                        found[n] = p;
+						                        if( n === seeking.length-1 ) break;  // found last seeking
+						                        n += 1;
+						                }
+			                else {
+						                        found = [];
+						                        n     = 0;
+						                }
+
+			        } while( p < this.length )
+	        if( n !== seeking.length - 1 ) found = [];
+	        return found;
+}
 
 // First first position in string not of seeking string character (if string else string if array)
 String.prototype.firstNotFound = function ( seeking, pos = 0 ) {
@@ -109,13 +134,18 @@ class OrdXml {
 			let name = xml.raw.substr(nextLeft+1).match(/^[A-Za-z\/][A-Za-z0-9]*/);  
 			if( name === null ) { name = '' } else { name = name[0].trim().toLowerCase(); }
 			let attribsBegin = nextLeft + name.length + 1;
-			let attribsEnd   = xml.raw.firstFound( ['/','>'], attribsBegin );
+			//let attribsEnd   = xml.raw.firstFound( ['/','>'], attribsBegin );
+			let attribsEnd = xml.raw.length-1;
+			let slashend = xml.raw.firstFound( ['/','>'], attribsBegin );
+			let justend  = xml.raw.firstFound( ['>'], attribsBegin );
+			if( slashend > 0 && slashend < justend ) attribsEnd = slashend;
+			if( justend > 0 && justend < slashend ) attribsEnd = slashend;
 
 			// Is Tag Definition?
 			let tagDef = undefined;
 			let tagDefBegin = xml.raw.substr(attribsBegin).indexOf('{') + attribsBegin;
 			if( tagDefBegin >= attribsBegin && xml.raw.substring(attribsBegin,tagDefBegin).trim() === '' ) {
-				let tagDefEnd = xml.raw.firstFound( ['}', '/','>'], attribsBegin );
+				let tagDefEnd = xml.raw.firstFound( ['}','/','>'], attribsBegin );
 				tagDef = xml.raw.slice(tagDefBegin+1,tagDefEnd)
 				attribsBegin = tagDefEnd+1;
 			}
