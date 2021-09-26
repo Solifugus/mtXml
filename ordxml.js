@@ -135,11 +135,14 @@ class OrdXml {
 			if( name === null ) { name = '' } else { name = name[0].trim().toLowerCase(); }
 			let attribsBegin = nextLeft + name.length + 1;
 			//let attribsEnd   = xml.raw.firstFound( ['/','>'], attribsBegin );
-			let attribsEnd = xml.raw.length-1;
-			let slashend = xml.raw.firstFound( ['/','>'], attribsBegin );
-			let justend  = xml.raw.firstFound( ['>'], attribsBegin );
-			if( slashend > 0 && slashend < justend ) attribsEnd = slashend;
-			if( justend > 0 && justend < slashend ) attribsEnd = slashend;
+			let attribsEnd = attribsBegin;  //  if cannot find tag end, assume this is the end..
+			let slashend = xml.raw.firstFound( ['/','>'], attribsBegin )[0];
+			let justend  = xml.raw.firstFound( ['>'], attribsBegin )[0];
+			if( slashend !== undefined ) { attribsEnd = slashend; }
+			if( justend !== undefined ) {
+				if( slashend === undefined ) { attribsEnd = justend; }
+				else { if( justend < slashend ) { attribsEnd = justend; } }
+			}
 
 			// Is Tag Definition?
 			let tagDef = undefined;

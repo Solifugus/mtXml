@@ -1,7 +1,0 @@
-
-<configuration ServerA: systems="/var/apskel" log="/var/log/apskel.log" ip="127.0.0.1" private="abc123" public="321cba">
-	<peer ServerB: ip="192.168.0.100" key="def456">
-	<peer ServerC: ip="192.168.0.101" key="ghi789">
-</configuration>
-
-
