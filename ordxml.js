@@ -1,210 +1,251 @@
 
-// Are any among "seeking" array the next string, at pos?
-String.prototype.hasNext = function ( seeking, pos = 0 ) {
-	let has = false;
-	for( let i = 0; i < seeking.length; i += 1 ) {
-		if( this.substr( pos, seeking[i].length ) === seeking[i] ) {
-			has = true;
-			break;
-		}
-	}
-	return has;
-}
+var mtlib = require('./mtlib.js').mtlib;
 
-// Which string among "seeking" array is found at pos?
-String.prototype.getNext = function ( seeking, pos = 0 ) {
-	let found = undefined;
-	for( let i = 0; i < seeking.length; i += 1 ) {
-		if( this.substr( pos, seeking[i].length ) === seeking[i] ) {
-			found = seeking[i];
-			break;
-		}
-	}
-	return found;
-}
+// ======================================================================
+// Object Definition: "ordxml"
+var ordxml = {
+	parseDoc:function(xml){
+		console.log('parsing '+xml.length+': ' + xml);
+		let contents = this.parseContents( xml )
+		return contents.contents;
+	}, // end of parseDoc()
 
-// First first position in string not of seeking string character (if string else string if array)
-/*
-String.prototype.firstFound = function ( seeking, pos = 0 ) {
-	while( pos < this.length ) {
-		if( this.hasNext( seeking, pos ) ) break;
-		pos += 1;
-	}
-	if( pos >= this.length ) pos = -1;
-	return pos;
-};
-*/
-String.prototype.firstFound = function ( seeking, pos = 0 ) {
-	        let found = []
-	        let n     = 0;
-	        let p     = pos -1;
-	        do {
-			                p += 1;
-			                if( this[p] === ' ' || this[p] === '\t' || this[p] === '\n') {
-						                        continue;
-						                }
-			                if( this[p] === seeking[n] ) {
-						                        found[n] = p;
-						                        if( n === seeking.length-1 ) break;  // found last seeking
-						                        n += 1;
-						                }
-			                else {
-						                        found = [];
-						                        n     = 0;
-						                }
+	parseContents:function( xml, from=0, inTag='' ) {
+		let contentsBegan = from;
+		let contents      = [];
+		let foundTagEnd   = false;
+		do {
+			// Look for End of Tag (currently within else error) or Start of Next Tag 
+			next = mtlib.firstFound(xml,['<!--','<![CDATA[','</'+inTag,'</','<'],from)
 
-			        } while( p < this.length )
-	        if( n !== seeking.length - 1 ) found = [];
-	        return found;
-}
-
-// First first position in string not of seeking string character (if string else string if array)
-String.prototype.firstNotFound = function ( seeking, pos = 0 ) {
-	while( pos < this.length ) {
-		if( !this.hasNext( seeking, pos ) ) break;
-		pos += 1;
-	}
-	if( pos >= this.length ) pos = -1;
-	return pos;
-};
-
-
-// ==========<< OrdXml Class Definition >>========== //
-class OrdXml {
-	constructor( setup = {} ) {
-		// TODO: add params
-		//    forgiving: true = let anything go unless critical
-		setup.trim         = ( setup.trim        !== undefined ) ? setup.trim : true;          // remove heading/trailing whitespace from text within tags
-		setup.caseless     = ( setup.caseless    !== undefined ) ? setup.caseless : true;      // tags interpreted as caseless (all made same case)
-		setup.forgiving    = ( setup.forgiving   !== undefined ) ? setup.forgiving : true;     // let anything go, if reasonably possible
-		setup.flattags     = ( setup.flattags    !== undefined ) ? setup.flattags : false;     // true = no hierarchy; false = hierarchy; array = hierachy except specified tag names
-		setup.comments     = ( setup.comments    !== undefined ) ? setup.comments : false;     // false = discard; true = keep as "comment" tag; else tag name for comment 
-		setup.enclosures   = ( setup.enclosures  !== undefined ) ? setup.enclosures : [];      // e.g. { opener:'{', closer:'}' }
-		setup.definitions  = ( setup.definitions !== undefined ) ? setup.definitions : false;  // false = don't compile; true = do compile tag 
-		if( setup.comments === true ) setup.comments = 'Comment';
-		this.setup = setup;
-
-		//console.log( 'SETUP: ', JSON.stringify( setup, null, '  ' ) );
-	}
-
-	parse( xml = '', tag = { name:'', attrib:{}, elems:[] } ) {
-		if( Buffer.isBuffer(xml) ) xml = xml.toString();
-		xml = ( typeof xml === 'string' ) ? { raw:xml, pos:0 } : xml;
-		
-		while( xml.pos < xml.raw.length ) {
-			// Find Next "<" and ">" 
-			let nextLeft = xml.raw.indexOf( '<', xml.pos);
-			let nextRight = xml.raw.indexOf( '>', nextLeft+1 );
-			if( nextRight === -1 ) {  // If no ">", error out..
-				console.error( 'Missing closing ">" after ' + placeInCode( xml.raw, xml.pos ) );
-				xml.pos = xml.raw.length;
-				return undefined;
+			// None Found and NOT IN a Tag
+			if( next === false && inTag === '' ) {
+				foundTagEnd = true;  // actually document end
+				let postext = xml.slice(from);
+				if( postext.trim() !== '' ) contents.push( postext );
+				from = xml.length
 			}
 
-			// Store any text before "<"
-			let text;
-			if( nextLeft > xml.pos ) {
-				if( this.setup.trim ) { text = xml.raw.substring( xml.pos, nextLeft ).trim(); }
-				else { text = xml.raw.substring( xml.pos, nextLeft ); }
-				if( text.length > 0 ) tag.elems.push( text ); 
+			// None Found and IS IN a Tag
+			if( next === false && inTag !== '' ) {
+				console.error('ERROR at '+contentsBegan+': Tag "' + inTag +'" not terminated.');
+				process.exit(1);
 			}
 
-			// If no "<" then store all remaining text and return
-			if( nextLeft === -1 ) {
-				if( xml.pos < xml.length-1 ) {
-					if( this.setup.trim ) { text = xml.raw.substr( xml.pos ).trim(); }
-					else { text = xml.raw.substr( xml.pos ); }
-					if( text.length > 0 ) tag.elems.push( text ); 
+			// If End of Current Tag
+			if( next.found === '</'+inTag ) {
+				postText = xml.slice(from,next.at-1);
+				if( postText.trim() !== '' ) contents.push( postText );
+				foundTagEnd = true;
+				from = next.at + ('</'+inTag).length;  // TODO: might be other stuff before '>'
+			}
+
+			// If Unexpected End Tag (any ending other than '</'+inTag)
+			if( next.found === '</' ) {
+				console.error('ERROR at '+from+': End Tag Not Matched to Start of Tag "'+inTag+'".');
+				process.exit(1);
+			}
+
+			// IF Start of New Tag
+			if( next.found === '<' ) {
+				let pretext = xml.slice(from,next.at-1);
+				if( pretext.trim() !== '' ) contents.push( pretext );	
+				let parsed = this.parseTag(xml,next.at);
+				from = parsed.nextAt;  // ZZZ
+				contents.push( parsed.tag ); 
+			}
+
+			// If Comment
+			if( next.found === '<!--' ) {
+				pretext = xml.slice(from,next.at-1);
+				if( pretext.trim() !== '' ) contents.push( pretext );	
+				let endCmt = xml.indexOf('-->',next.at);
+				if( endCmt !== -1 ) {
+					// Not Pushing Comment
+					from = endCmt+3;
 				}
-				xml.pos = xml.raw.length;
-				return tag;
+				else {
+					console.error('WARNIG at '+next.at+': Comment started but never ended.');
+					from = xml.length;
+				}
 			}
 
-			// If <!-- to --> then skip over.. It's a comment.
-			if( xml.raw.substr(nextLeft+1,3) === '!--' && xml.raw.substr(nextRight-2,2) === '--' ) {
-				if( this.setup.comments !== false ) {
-					tag.elems.push({ name:this.setup.comments, attribs:{}, elems:[xml.raw.substring(nextLeft+4,nextRight-2)] });
+			// If CDATA
+			if( next.found === '<![CDATA[' ) {
+				pretext = xml.slice(from,next.at-1);
+				if( pretext.trim() !== '' ) contents.push( pretext );	
+				let endCmt = xml.indexOf(']]>',next.at);
+				if( endCmt !== -1 ) {
+					contents.push( xml.slice(next.at+8,endCmt) );  // pushing cdata block
+					from = endCmt+3;
 				}
-				xml.pos = nextRight+1;
+				else {
+					console.error('WARNIG at '+next.at+': CDATA started but never ended.');
+					from = xml.length;
+				}
+			}
+
+		} while( from <= xml.length && !foundTagEnd );
+		return { contents:contents, nextAt:from };
+
+	},
+
+	// Parse Whole Tag (Start, Params, Contents, End)
+	parseTag:function( xml, tagFirst ){
+		let stringEnclosure={openner:'"',closer:'"',escaper:'\\'} 
+		let tag = { type:undefined, id:undefined, prop:{}, contents:[] }
+		let attribFirst;
+		let attribLast;
+		let contentFirst = null;  // if ending in />, there is no content
+		let afterEndTag;
+		// Get Tag Type and Start of Tag Attirbutes Section
+		let m = xml.slice(tagFirst).match( /\s*([a-z]+[a-z0-9]*)/i ); 
+		if( m === null ) {
+			console.error('ERROR at '+tagFirst+': Malformed tag identifier.');
+			process.exit(1);
+		}
+		else {
+			tag.type = m[0]; // Type of Tag
+			attribFirst = tagFirst+tag.type.length;
+		}
+
+		// Identify End of Tag Attributes Section 
+		let th = xml.slice(attribFirst);
+		let p = attribFirst;
+		attribEnd = mtlib.firstFound(xml,['>','/>'],attribFirst,stringEnclosure);
+		if( attribEnd === false ) {
+			console.error('ERROR at '+attribFirst+': Could not find end of tag attributes section.' + attribFirst);
+			process.exit(1);
+		}
+		else {
+			// Identified last of attributes & first of content, if any ('/>' endings have no content)
+			attribLast = attribEnd.at - 1;
+			if( attribEnd.found === '>' ) contentFirst = attribEnd.at;
+		}
+
+		// Capture Tag Attributes
+		attribSection = xml.slice(attribFirst,attribLast);
+		let param = this.parseParams( xml, attribFirst, attribLast ); // XXX
+		tag.id    = param.id;
+		tag.prop = param.prop;
+
+		// Capture Tag Contents, Recursively..
+		if( contentFirst !== null ) {
+			let found    = this.parseContents(xml,contentFirst,tag.type);
+			tag.contents = found.contents;
+			afterEndTag  = found.nextAt;
+		}
+		// Unless No Contents Expected (ending in />)
+		else { 
+			tag.contents = undefined;
+			afterEndTag  = attribLast+2;
+		}
+		return {tag:tag,nextAt:afterEndTag};
+	},  // end of parseTag
+
+	// Parse XML Parameters
+	parseParams( str, from, thru = str.length ) {
+		let param = { id:'', prop:{} };
+
+		// Has Instance ID? (<tagtype instanceID: assignments/>)
+		let nameFound = mtlib.captureAhead( str, from, mtlib.letters+mtlib.digits, mtlib.whitespace );
+		let operFound = mtlib.captureAhead( str, nameFound.nextAt, ':', mtlib.whitespace );
+		if( operFound.captured === ':' ) {
+				param.id = nameFound.captured;
+				from     = operFound.nextAt;
+		}
+
+		// Read All Assignments
+		while( from <= thru ) {
+			nameFound = mtlib.captureAhead( str, from, mtlib.letters+mtlib.digits, mtlib.whitespace );
+			if( nameFound.captured === '' ) {
+				break;  // TODO: check for /> or >, up next maybe?
+				console.error('ERROR: expected property name not found, at ' + from +'.');
+				return null;
+			}
+			operFound = mtlib.captureAhead( str, nameFound.nextAt, '=', mtlib.whitespace );
+
+			// If No "=" Sign Then Assign True--it's a flag
+			if( operFound.captured === '' ) {
+				param.prop[nameFound.captured] = true;
+				from = nameFound.nextAt;
 				continue;
 			}
+	
+			// Gather Assigned Value(s)	
+			let name  = nameFound.captured;
+			from = operFound.nextAt;
+			do {
+				gotValue = false;
+				let value;
 
-			// Get Tag Name (including any preceeding '/')
-			//let name = xml.raw.substr(nextLeft+1).match(/^[^\s<>]*/)[0].trim().toLowerCase();  // Ultra-Forgiving Tag Identification
-			let name = xml.raw.substr(nextLeft+1).match(/^[A-Za-z\/][A-Za-z0-9]*/);  
-			if( name === null ) { name = '' } else { name = name[0].trim().toLowerCase(); }
-			let attribsBegin = nextLeft + name.length + 1;
-			//let attribsEnd   = xml.raw.firstFound( ['/','>'], attribsBegin );
-			let attribsEnd = attribsBegin;  //  if cannot find tag end, assume this is the end..
-			let slashend = xml.raw.firstFound( ['/','>'], attribsBegin )[0];
-			let justend  = xml.raw.firstFound( ['>'], attribsBegin )[0];
-			if( slashend !== undefined ) { attribsEnd = slashend; }
-			if( justend !== undefined ) {
-				if( slashend === undefined ) { attribsEnd = justend; }
-				else { if( justend < slashend ) { attribsEnd = justend; } }
-			}
-
-			// Is Tag Definition?
-			let tagDef = undefined;
-			let tagDefBegin = xml.raw.substr(attribsBegin).indexOf('{') + attribsBegin;
-			if( tagDefBegin >= attribsBegin && xml.raw.substring(attribsBegin,tagDefBegin).trim() === '' ) {
-				let tagDefEnd = xml.raw.firstFound( ['}','/','>'], attribsBegin );
-				tagDef = xml.raw.slice(tagDefBegin+1,tagDefEnd)
-				attribsBegin = tagDefEnd+1;
-			}
-
-			let closingSuper = false;
-			let newTag       = tag;  // default, if it is merely closing the super (so we can collect attribs added to closing of super)
-			if( name[0] === '/' && name.substr(1).toLowerCase() === tag.name ) { closingSuper = true; }
-			else { newTag = { name:name, attrib:{}, elems:[] }; }
-			if( tagDef !== -1 ) {
-				if( this.setup.definitions ) { newTag.def = new Function("tag",tagDef); }
-				else { newTag.def = tagDef; }
-			}
-
-			// Grab Assigned Attributes
-			let attribs = xml.raw.substring( attribsBegin, attribsEnd ).match(/[^\s=]+\s*(?:=(?:"[^"]*"|[^=\S]*\S+))?/gm);
-			if( attribs !== null ) {
-				for( let i = 0; i < attribs.length; i += 1 ) {
-					let halves = attribs[i].split('=');
-					let name;
-					let value = ( halves[1] === undefined ) ? true : halves[1].trim();
-					if( value.length > 1 && value[0] === '"' && value[value.length-1] === '"' ) { value = value.substring(1,value.length-1); }
-					else { if( !isNaN( value ) ) value = Number( value ); }
-					if( this.setup.caseless ) { name = halves[0].trim().toLowerCase(); }
-					else { name = halves[0].trim(); }
-					switch( typeof newTag.attrib[name] ) {
-						case 'undefined': newTag.attrib[name] = value; break;
-						case 'string':
-						case 'number': newTag.attrib[name] = [ newTag.attrib[name], value ]; break;
-						case 'object': newTag.attrib[name].push(value); break;
-						default: console.error('ERROR: Unexpected attribute value type');
+				// Is String?
+				if( !gotValue ) {
+					let found = mtlib.captureAhead( str, from, '"', mtlib.whitespace );
+					if( found.captured === '"' ) {
+						let strFirst = found.nextAt;
+						let valueFound = mtlib.captureUntil( str, strFirst, until = '"' );
+						//param.prop[nameFound.captured] = valueFound.captured;
+						value = valueFound.captured;
+						from = valueFound.nextAt;
+						gotValue = true;
 					}
 				}
-			}
 
-			// Got Tag so Set Pos Past it..
-			xml.pos = nextRight + 1;
-			
-			// If end of recurse into tag, return (since any attribs added to closing tag are collected now)
-			if( closingSuper ) { return tag; }  // newTag is old tag (just closing it)
-			
-			// Is Self-Closing Tag?
-			if( xml.raw[nextRight-1] === '/' ) {
-				tag.elems.push( newTag );
-			}
-			else {
-				tag.elems.push( this.parse( xml, newTag ) );
-			}
-			
-		} // end of while( pos < xml.length )
-		return tag;
+				// Is Number?
+				if( !gotValue ) {
+					valueFound = mtlib.captureAhead( str, from, '-0123456789.', mtlib.whitespace );
+					if( valueFound.captured !== '' ) {
+						if( !isNaN( valueFound.captured ) ) {
+							//param.prop[nameFound.captured] = Number(valueFound.captured);
+							value = Number(valueFound.captured);
+						}
+						else {
+							console.error('ERROR: Malformed number "'+valueFound.captured+'" assign to "'+nameFound.captured+'" at '+from+'.');
+							return null;
+						}
+						from = valueFound.nextAt;
+						gotValue = true;
+					}
+				}
 
-	}  // end of parse() method
+				// Is Boolean? (True/False or Yes/No)
+				if( !gotValue ) {
+					valueFound = mtlib.captureWord( str, from, ['True','False','Yes','No'], this.whitespace );
+					if( valueFound.captured !== '' ) {
+						if( valueFound.captured === 'True' || valueFound.captured === 'Yes' ) value = true;
+						if( valueFound.captured === 'False' || valueFound.captured === 'No' ) value = false;
+						from = valueFound.nextAt;
+						gotValue = true;
+					}
+				}
 
+				// Is Condition?
+				// TODO: ( .. )
 
-} // end of Ordxml class
+				// Is Time?
+				// TODO: \ .. \
+	
+				// Make Assignment; If Multiple Values, Make Array as Necessary..
+				if( param.prop[name] === undefined ) { param.prop[name] = value; }
+				else { 
+					if( !Array.isArray(param.prop[name]) ) param.prop[name] = [param.prop[name]];
+				}
+				if( Array.isArray(param.prop[name]) ) param.prop[name].push(value)
 
-exports.OrdXml = OrdXml;
+				// Comma Separated Array of Values?
+				found = mtlib.captureAhead( str, from, ',', mtlib.whitespace );
+				if( found.captured === ',' ) {
+					from = found.nextAt;
+				}
+				else { break; }
 
+			} while( true );
 
+		} // end of while( from <= thru )
+		return param;
+	}  // end of parseParamS(..)
+
+} // end of ordxml
+
+exports.ordxml = ordxml;

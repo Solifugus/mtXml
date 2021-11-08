@@ -1,9 +1,16 @@
-<!-- Simple XML Example, everything is parsed and retained in order -->
-<person age="27" name="John Doe">
-	First line of text.
-	<!-- Where no assignment, attributes are assigned the number 1 -->
-	<attributes smart clever smelly/>
-	<!-- Where multiple of same attibute, an array is assigned -->
-	<food fruit="apple" fruit="pair" fruit="orange" fruit="banana"/>
-	last line of text.
-</person>
+<!-- Examples of What OrdXML Can Parse -->
+<examples>
+	Hello World!
+	<TagType exampleId:/>
+	<AnotherTag props: flagA flagB string="Hello" string="world" number=42 sad=No/>
+	<AnotherTag arrays: string="Hello","Array" mixed="Crazy",57,Yes/>
+	<![CDATA[ Any kind of <crazy> text ]]>
+	<super>
+		<under1>
+			<under2>
+				Recursive Tags
+			</under2>
+		</under1>
+	</super>
+	The end.
+</examples>
