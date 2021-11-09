@@ -1,6 +1,6 @@
 const fs = require('fs')
-//const ordxml = require('./ordxml.js').ordxml;
-const ordxml = require('ordxml').ordxml;
+const ordxml = require('./ordxml.js').ordxml;
+//const ordxml = require('ordxml').ordxml;
 
 let xml = fs.readFileSync('./test.xml').toString();
 

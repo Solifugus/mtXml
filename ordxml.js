@@ -5,7 +5,7 @@ var mtlib = require('./mtlib.js').mtlib;
 // Object Definition: "ordxml"
 var ordxml = {
 	parseDoc:function(xml){
-		console.log('parsing '+xml.length+': ' + xml);
+		if( Buffer.isBuffer(xml) ) xml = xml.toString();
 		let contents = this.parseContents( xml )
 		return contents.contents;
 	}, // end of parseDoc()

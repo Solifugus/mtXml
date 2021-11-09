@@ -12,5 +12,9 @@
 			</under2>
 		</under1>
 	</super>
+	<multiLineTag
+		a=1
+		b="two"
+	/>
 	The end.
 </examples>

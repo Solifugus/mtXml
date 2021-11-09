@@ -3,7 +3,7 @@
 var mtlib = {
 	letters:'aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ',
 	digits:'0123456789',  
-	whitespace:' \t',
+	whitespace:' \t\n',
 };
 
 // Find First Among One+ Alternative Strings Ahead
