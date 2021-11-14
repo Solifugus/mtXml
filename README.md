@@ -67,7 +67,6 @@ console.log( JSON.stringify( data, null, '  ' ) );
 
 ## Roap Map
 
-* Add option for returning object with pure data structure (tag ID tree to data elements) + mirrored tag type structure. 
 * Config option for making ordxml a drop-in replacement for "fast-xml-parser"
 * Config option for making ordxml a drop-in replacement for "xml2js"
 * Add back tag function definer syntax in older version, e.g. `<mytag{ javascript code }/>`.

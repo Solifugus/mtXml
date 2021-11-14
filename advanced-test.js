@@ -1,13 +1,23 @@
+const fs = require('fs')
+//const ordxml = require('./ordxml.js').ordxml;
+const ordxml = require('ordxml').ordxml;
 
-const OrdXml = require('./ordxml.js').OrdXml;
-let ordxml = new OrdXml({ definitions:true });
+// Read the XML Text From File Into a Variable
+let xml = fs.readFileSync('./test-advanced.xml').toString();
 
-let xmlData = '<say message="Hello World!"/>'; //\n<mystuff whos="mine" not="yours"> <item>coffee</item><item>phone</item> </mystuff>';
-let data = ordxml.parse(xmlData)
-//console.log( JSON.stringify( data, null, '  ' ) );
+// Parse the XML Text into a Comprehensive Object
+let doc = ordxml.parseDoc( xml );
 
-let xmlDef = '<say{ console.log( tag.attrib.message ); }/>';
-let defs = ordxml.parse(xmlDef);
-defs.elems[0].def( data.elems[0] );
+// Create a Simplified Data Tree Object (By Specified ID's)
+let data = ordxml.buildIdTree( doc );
 
+// Collect Data From Deep Tag Properties, Exmaples
+handle = data.myapp.profile.username.prop.value;
+email  = data.myapp.profile.email.prop.value
+console.log('Handle: ', handle);
+console.log('Email: ', email);
+
+// Free Text Are Put Into "text"+n Elements with a "value" property
+about = data.myapp.about.text0.prop.value;
+console.log('About Text: ', about);
 

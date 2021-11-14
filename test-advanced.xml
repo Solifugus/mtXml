@@ -1,0 +1,18 @@
+<system myapp: version="0.1.0">
+	<menu primaryMenu: options="Home","Chat","Profile","About"/>
+	<dialog home: show=yes>
+		MyApp's Home
+	</dialog>
+	<dialog chat:>
+		<textscroll transcript:>Hello</textscroll>
+		<input message:/>
+	</dialog>
+	<dialog profile:>
+		<input username: label="Preferred Handle" value="joe"/>
+		<input email:    label="Email" value="joe@wherever.com"/>
+		<input gender:   options="Male","Female" value="Male"/>
+	</dialog>
+	<dialog about:>
+		MyApp is a simple chat app.
+	</dialog>
+</system>

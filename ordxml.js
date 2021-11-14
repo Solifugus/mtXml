@@ -3,14 +3,15 @@ var mtlib = require('./mtlib.js').mtlib;
 
 // ======================================================================
 // Object Definition: "ordxml"
-var ordxml = {
-	parseDoc:function(xml){
+var ordxml = {};
+
+ordxml.parseDoc = function(xml) {
 		if( Buffer.isBuffer(xml) ) xml = xml.toString();
 		let contents = this.parseContents( xml )
 		return contents.contents;
-	}, // end of parseDoc()
+	}; // end of parseDoc()
 
-	parseContents:function( xml, from=0, inTag='' ) {
+ordxml.parseContents = function( xml, from=0, inTag='' ) {
 		let contentsBegan = from;
 		let contents      = [];
 		let foundTagEnd   = false;
@@ -88,10 +89,10 @@ var ordxml = {
 		} while( from <= xml.length && !foundTagEnd );
 		return { contents:contents, nextAt:from };
 
-	},
+	};  // end of parseContents(..) 
 
 	// Parse Whole Tag (Start, Params, Contents, End)
-	parseTag:function( xml, tagFirst ){
+ordxml.parseTag = function( xml, tagFirst ) {
 		let stringEnclosure={openner:'"',closer:'"',escaper:'\\'} 
 		let tag = { type:undefined, id:undefined, prop:{}, contents:[] }
 		let attribFirst;
@@ -141,10 +142,10 @@ var ordxml = {
 			afterEndTag  = attribLast+2;
 		}
 		return {tag:tag,nextAt:afterEndTag};
-	},  // end of parseTag
+	};  // end of parseTag
 
-	// Parse XML Parameters
-	parseParams( str, from, thru = str.length ) {
+// Parse XML Parameters
+ordxml.parseParams = function( str, from, thru = str.length ) {
 		let param = { id:'', prop:{} };
 
 		// Has Instance ID? (<tagtype instanceID: assignments/>)
@@ -244,8 +245,27 @@ var ordxml = {
 
 		} // end of while( from <= thru )
 		return param;
-	}  // end of parseParamS(..)
+	}; // end of parseParamS(..)
 
-} // end of ordxml
+// Enable Reference To Data Via ID-Formed Tree
+ordxml.buildIdTree = function( contents ) {
+	let data = {};
 
+	for( let i = 0; i < contents.length; i += 1 ) {
+		tag = contents[i];
+
+		// Put Free Text in Numbered Text-n Tags with value in "value" property
+		if( typeof tag === 'string' ) tag = { id:'text'+i, prop:{ value:tag } };
+
+		// Tree Should Traverse Only Where ID's Were Specified
+		if( tag.id === '' ) { data = null } 
+		else {
+			data[tag.id] = { prop: tag.prop };
+			if( tag.contents !== undefined ) data[tag.id] = this.buildIdTree( tag.contents ); 
+		}
+	} // end of i loop
+
+	return data;
+} // end of buildDataView(..)
 exports.ordxml = ordxml;
+

@@ -1,5 +1,5 @@
 <!-- Examples of What OrdXML Can Parse -->
-<examples>
+<document:>
 	Hello World!
 	<TagType exampleId:/>
 	<AnotherTag props: flagA flagB string="Hello" string="world" number=42 sad=No/>
@@ -17,4 +17,4 @@
 		b="two"
 	/>
 	The end.
-</examples>
+</document>
