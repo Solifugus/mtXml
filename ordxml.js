@@ -100,7 +100,7 @@ ordxml.parseTag = function( xml, tagFirst ) {
 		let contentFirst = null;  // if ending in />, there is no content
 		let afterEndTag;
 		// Get Tag Type and Start of Tag Attirbutes Section
-		let m = xml.slice(tagFirst).match( /\s*([a-z]+[a-z0-9]*)/i ); 
+		let m = xml.slice(tagFirst).match( /\s*([a-z]+[a-z0-9\-]*)/i ); 
 		if( m === null ) {
 			console.error('ERROR at '+tagFirst+': Malformed tag identifier.');
 			process.exit(1);
@@ -149,7 +149,7 @@ ordxml.parseParams = function( str, from, thru = str.length ) {
 		let param = { id:'', prop:{} };
 
 		// Has Instance ID? (<tagtype instanceID: assignments/>)
-		let nameFound = mtlib.captureAhead( str, from, mtlib.letters+mtlib.digits, mtlib.whitespace );
+		let nameFound = mtlib.captureAhead( str, from, mtlib.letters+mtlib.digits+'-', mtlib.whitespace );
 		let operFound = mtlib.captureAhead( str, nameFound.nextAt, ':', mtlib.whitespace );
 		if( operFound.captured === ':' ) {
 				param.id = nameFound.captured;
@@ -158,7 +158,7 @@ ordxml.parseParams = function( str, from, thru = str.length ) {
 
 		// Read All Assignments
 		while( from <= thru ) {
-			nameFound = mtlib.captureAhead( str, from, mtlib.letters+mtlib.digits, mtlib.whitespace );
+			nameFound = mtlib.captureAhead( str, from, mtlib.letters+mtlib.digits+'-', mtlib.whitespace );
 			if( nameFound.captured === '' ) {
 				break;  // TODO: check for /> or >, up next maybe?
 				console.error('ERROR: expected property name not found, at ' + from +'.');
