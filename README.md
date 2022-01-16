@@ -11,8 +11,6 @@ Accordingly, ordxml will become mtXml 1.0.0 and from that point on, I plan to ne
 ```
 So in the above, the first associates a javascript function to all tags of type "card".  The second line is an example of a card that would have its information sent into the javascript faction to return replacement text for it.  In the above, the function would thus render the card to HTML/CSS.  Of course, this could be used in any number of other ways, too.  One could use the function to process the data in some way.
 
-Furthermore, I want to change the parsed javascript object to refer to tag ID's ("mycard" in the above example) to "instance".  This would be to differentiate between any properties named "id", as that is so commonly used.  So the tag type is essentially a class and there can be distinguished instances of such a class.  Down the road, I might also add a way to do inheritance with a way to replace or insert (at desired places) tags within the subclass. 
-
 ## Description
 
 Originally, I developed OrdXML because I couldn't find an XML parser for Node.js that kept text and tags in order.
