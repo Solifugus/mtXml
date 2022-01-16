@@ -1,6 +1,17 @@
 # ordxml
 
-Note: This is a rewrite of OrdXml and backward compatibility is lost since version 0.2.7.
+## Plan
+
+I have long been thinking about rebranding most of the tools I have published.  The reason is that it's frustrating come up with names not yet taken and it'd be nice to keep them all in one family.  Also, there are some areas in which I'd like to break backward compatibity.  I don't like breaking backward compatibility but I think it's ok if I am rebranding and leaving the old code as it is.  The branding plan is to use the most generic and intuitive names possible but prefixing these with my initials, "mt".
+
+Accordingly, ordxml will become mtXml 1.0.0 and from that point on, I plan to never break backward compatibility.  However first, I want to feature complete ordxml.  I want to finish re-implementing tag definitions.  For example:
+```xml
+<card{ ..javascript to render card..}/>
+<card mycard: title="My Card"> text within card </card>
+```
+So in the above, the first associates a javascript function to all tags of type "card".  The second line is an example of a card that would have its information sent into the javascript faction to return replacement text for it.  In the above, the function would thus render the card to HTML/CSS.  Of course, this could be used in any number of other ways, too.  One could use the function to process the data in some way.
+
+## Description
 
 Originally, I developed OrdXML because I couldn't find an XML parser for Node.js that kept text and tags in order.
 That is, after parsing an XML document, the text contained in a tag and the sub-tags contained were each put in different arrays.
