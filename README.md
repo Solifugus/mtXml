@@ -1,15 +1,14 @@
-# ordxml
+# mtXML (formerly OrdXML)
 
-## Plan
+mtXML parses XML into a Javascript data object, retaining the sequence of elements (including text between elements).  In this way, it is useful for both data acquisition or tool development.  mtXml is forgiving of malformed XML and, in fact, recognizes some extensions designed by me.
 
-I have long been thinking about rebranding most of the tools I have published.  The reason is that it's frustrating come up with names not yet taken and it'd be nice to keep them all in one family.  Also, there are some areas in which I'd like to break backward compatibity.  I don't like breaking backward compatibility but I think it's ok if I am rebranding and leaving the old code as it is.  The branding plan is to use the most generic and intuitive names possible but prefixing these with my initials, "mt".
+Extensions include:
+- Recognition of literal data types, e.g. `<mytag myname="fred" myage=42/>`
+- Arrays assignable to attributes, e.g., `<mytag fruits="apple","banna","peanut butter',53,"oranges"/>` (even with mixed data types)
+- Tag instance IDs. e.g. `<account myaccount: balance=432.66 paymentdue='2023-10-15T12:00:00.0'/>` (myaccount is instance ID)
+- Tag definitions, e.g. `<card{ ..javascript to render card..}/>` (thereafter replaces card instances with whatever code does)
 
-Accordingly, ordxml will become mtXml 1.0.0 and from that point on, I plan to never break backward compatibility.  However first, I want to feature complete ordxml.  I want to finish re-implementing tag definitions.  For example:
-```xml
-<card{ ..javascript to render card..}/>
-<card mycard: title="My Card"> text within card </card>
-```
-So in the above, the first associates a javascript function to all tags of type "card".  The second line is an example of a card that would have its information sent into the javascript faction to return replacement text for it.  In the above, the function would thus render the card to HTML/CSS.  Of course, this could be used in any number of other ways, too.  One could use the function to process the data in some way.
+Note: The tag definition feature is not fully re-implemented (it was in a previous version).
 
 ## Description
 
