@@ -8,7 +8,10 @@ Extensions include:
 - Tag instance IDs. e.g. `<account myaccount: balance=432.66 paymentdue='2023-10-15T12:00:00.0'/>` (myaccount is instance ID)
 - Tag definitions, e.g. `<card{ ..javascript to render card..}/>` (thereafter replaces card instances with whatever code does)
 
-Note: The tag definition feature is not fully re-implemented (it was in a previous version).
+TODOs: 
+- The tag definition feature is not fully re-implemented (it was in a previous version).
+- Add a flag flag to enable XML extensions in order to recognize them ( `mtxml.parseDoc( xml, true)` )
+
 
 ## Description
 
